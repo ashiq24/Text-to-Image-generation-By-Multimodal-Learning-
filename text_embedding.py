@@ -52,6 +52,7 @@ class TextBranch(object):
         self.emb_dim = 100
         self.char = Input(batch_shape=(None, self.max_len))
 
+    """
     def encoder(self):
         print(self.glove_embedding_matrix.shape)
         act = ELU()
@@ -84,3 +85,32 @@ class TextBranch(object):
         decoder_ = decoder_mean(h_decoded)
 
         return decoder_
+ 
+ """
+
+    def encoder(self):
+        print(f"max len is {self.max_len}")
+        inputs = self.char
+        embedding = Embedding(self.NB_WORDS, self.emb_dim, weights=[self.glove_embedding_matrix],
+                              input_length=self.max_len, trainable=True)(inputs)
+        encoded_h1 = Dense(256, activation='relu')(embedding)
+        encoded_h2 = Dense(128, activation='relu')(encoded_h1)
+        latent = Dense(96, activation='relu')(encoded_h2)
+        return latent
+
+    def decoder(self, latent_vector):
+
+        decoder_h1 = Dense(4, activation='tanh')(latent_vector)
+        decoder_h2 = Dense(8, activation='tanh')(decoder_h1)
+        decoder_h3 = Dense(16, activation='tanh')(decoder_h2)
+        decoder_h4 = Dense(32, activation='tanh')(decoder_h3)
+        decoder_h5 = Dense(64, activation='tanh')(decoder_h4)
+
+        output = Dense(self.max_len, activation='tanh')(decoder_h5)
+
+        return output
+
+
+# test code
+
+

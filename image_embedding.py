@@ -37,14 +37,13 @@ class ImageBranch(object):
         x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
         encoded = MaxPooling2D((2, 2), padding='same')(x)
         encoded = Flatten()(encoded)
-        encoded = Dense(units=128, activation='softmax')(encoded)
+        encoded = Dense(units=96, activation='softmax')(encoded)
         return encoded
 
     def decoder(self, latent_vector):
 
         print(latent_vector.shape)
-        latent_vector = Reshape((64, 64, 3))(latent_vector)
-
+        latent_vector = Reshape(target_shape=(250, 128, 3))(latent_vector)
         x = Conv2D(32, (3, 3), activation='relu', padding='same')(latent_vector)
         x = UpSampling2D((2, 2))(x)
         x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
