@@ -1,8 +1,6 @@
 from keras import Input
-from keras.layers import Bidirectional, Dense, LSTM, RepeatVector, TimeDistributed, Dropout, Flatten
+from keras.layers import Dense
 from keras.layers import Embedding
-from keras.layers.advanced_activations import ELU
-from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
 from numpy import asarray
 from numpy import zeros
@@ -15,12 +13,14 @@ def text_preprocess():
 
     t = Tokenizer()
     t.fit_on_texts(docs)
+
     vocab_size = len(t.word_index) + 1
+    print(vocab_size)
     # integer encode the documents
-    encoded_docs = t.texts_to_sequences(docs)
-    # pad documents to a max length of 4 words
-    max_length = 4
-    padded_docs = pad_sequences(encoded_docs, maxlen=max_length, padding='post')
+    # encoded_docs = t.texts_to_sequences(docs)
+    # # pad documents to a max length of 4 words
+    # max_length = 4
+    # padded_docs = pad_sequences(encoded_docs, maxlen=max_length, padding='post')
     # load the whole embedding into memory
     embeddings_index = dict()
     f = open('./glove.6B.100d.txt', encoding='utf-8')
@@ -43,50 +43,12 @@ def text_preprocess():
 
 class TextBranch(object):
 
-    def __init__(self, embedding_matrix):
-        self.NB_WORDS = 5  # vocab size
+    def __init__(self, embedding_matrix, vocab_size):
+        self.NB_WORDS = vocab_size  # vocab size
         self.max_len = 1000
-        self.latent_dim = 64  # encoding part flat size
         self.glove_embedding_matrix = embedding_matrix
-        self.intermediate_dim = 96
         self.emb_dim = 100
         self.char = Input(batch_shape=(None, self.max_len))
-
-    """
-    def encoder(self):
-        print(self.glove_embedding_matrix.shape)
-        act = ELU()
-
-        x = self.char
-        x_embed = Embedding(self.NB_WORDS, self.emb_dim, weights=[self.glove_embedding_matrix],
-                            input_length=self.max_len, trainable=True)(x)
-        h = Bidirectional(LSTM(self.intermediate_dim, return_sequences=False, recurrent_dropout=0.2),
-                          merge_mode='concat')(
-            x_embed)
-        # h = Bidirectional(LSTM(intermediate_dim, return_sequences=False), merge_mode='concat')(h)
-        # h = Flatten()(h)
-        h = Dropout(0.3)(h)
-        h = Dense(self.intermediate_dim, activation='linear')(h)
-        h = act(h)
-        h = Dropout(0.2)(h)
-        # encoded = Flatten()(h)
-        encoder_ = Dense(128)(h)  # encoded = Dense(units=128, activation='softmax')(encoded)
-
-        return encoder_
-
-    def decoder(self, latent_vector):
-        print("Latent vector shape is {}".format(latent_vector.shape))
-
-        repeated_context = RepeatVector(self.max_len)
-        decoder_h = LSTM(self.intermediate_dim, return_sequences=True, recurrent_dropout=0.2)
-        decoder_mean = TimeDistributed(
-            Dense(self.NB_WORDS, activation='linear'))  # softmax is applied in the seq2seqloss by tf
-        h_decoded = decoder_h(repeated_context(latent_vector))
-        decoder_ = decoder_mean(h_decoded)
-
-        return decoder_
- 
- """
 
     def encoder(self):
         print(f"max len is {self.max_len}")
